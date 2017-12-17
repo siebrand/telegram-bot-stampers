@@ -14,6 +14,8 @@ BASE_URL = "https://api.telegram.org/bot{}".format(TOKEN)
 
 def hello(event, context):
     try:
+        os.environ['TZ'] = 'Europe/Amsterdam'
+
         data = json.loads(event["body"])
 
         # print (data)
