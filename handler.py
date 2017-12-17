@@ -19,6 +19,7 @@ def hello(event, context):
         # print (data)
 
         message = str(data["message"]["text"])
+
         chat_id = data["message"]["chat"]["id"]
         first_name = data["message"]["from"]["first_name"]
 
@@ -30,6 +31,8 @@ def hello(event, context):
         if "omloop" in message:
             omloop = datetime.date(2018, 2, 28)
             response = "Omloop is over {} dagen!".format((omloop - datetime.date.today()).days)
+
+        print (message, response)
 
         data = {
             "text": response.encode("utf8"),
