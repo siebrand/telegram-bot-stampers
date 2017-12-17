@@ -45,6 +45,7 @@ provider:
   environment:
 #    variable1: value1
     TELEGRAM_TOKEN: ${ssm:/telegram/token/StampersTestBot}
+    TZ: 'Europe/Amsterdam'
 
 # you can add packaging information here
 #package:
