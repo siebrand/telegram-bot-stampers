@@ -19,6 +19,9 @@ var/
 # Yay macOS
 .DS_Store
 
+# Yay more
+*.bak
+
 # Serverless directories
 .serverless
 vendored
