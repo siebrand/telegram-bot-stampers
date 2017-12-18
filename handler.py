@@ -22,6 +22,20 @@ dynamodb = boto3.resource('dynamodb')
 t_subscriptions = dynamodb.Table("{}-{}-subscriptions".format(SERVICE, STAGE))
 
 
+def get_event_from_message(message, command):
+    event_filters = [
+        "@{}".format(SERVICE),
+        "{} ".format(command),
+    ]
+
+    print (event_filters)
+
+    for filter in event_filters:
+        message = message.replace(filter, "", 1)
+
+    return message
+
+
 def send_message(response, chat_id):
     data = {
         "text": response.encode("utf8"),
@@ -48,7 +62,9 @@ def unsubscribe_event(message, command, user_id):
         )
     else:
         print("Message: " + message)
-        event = message.replace("{} ".format(command), "", 1)
+
+        event = get_event_from_message(message, command)
+
         print("Event: " + event)
 
         if event in events:
@@ -86,7 +102,9 @@ def subscribe_event(message, command, user_id):
         )
     else:
         print("Message: " + message)
-        event = message.replace("{} ".format(command), "", 1)
+
+        event = get_event_from_message(message, command)
+
         print("Event: " + event)
 
         if event in events:
