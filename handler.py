@@ -69,11 +69,12 @@ def unsubscribe_event(message, command, user_id, user_name):
 
             if subscribed:
                 t_subscriptions.delete_item(
-                    Item={
+                    Key={
                         'user': user_id,
                         'event': event,
                     }
                 )
+
                 response = "You are now unsubscribed to '{}', {}.".format(event, user_name)
             else:
                 response = "You are not subscribed to '{}', {}!".format(event, user_name)
