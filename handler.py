@@ -151,7 +151,7 @@ def hello(event, context):
         if "start" in message:
             response = (
                 "Hello {}! I support  the following commands:\n"
-                "/omloop for number of days to the start of the season\n"
+                "/omloop for number of days until Omloop Het Nieuwsblad\n"
                 "/subscribe for a number of events you can subscribe to\n"
                 "/unsubscribe for events you have subscribed to\n"
                 .format(first_name)
@@ -161,7 +161,7 @@ def hello(event, context):
         if command in message:
             print("Command: " + command)
             omloop = datetime.date(2018, 2, 24)
-            response = "Omloop is in {} days!".format((omloop - datetime.date.today()).days)
+            response = "Omloop Het Nieuwsblad is in {} days!".format((omloop - datetime.date.today()).days)
 
         command = "/subscribe"
         if command in message:
