@@ -75,7 +75,7 @@ def unsubscribe_event(message, command, user_id, user_name):
                     }
                 )
 
-                response = "You are now unsubscribed to '{}', {}.".format(event, user_name)
+                response = "You are now unsubscribed from '{}', {}.".format(event, user_name)
             else:
                 response = "You are not subscribed to '{}', {}!".format(event, user_name)
         else:
