@@ -22,16 +22,17 @@ dynamodb = boto3.resource('dynamodb')
 t_subscriptions = dynamodb.Table("{}-{}-subscriptions".format(SERVICE, STAGE))
 
 
-def get_event_from_message(message, command):
+def get_event_from_message(message, command ):
     event_filters = [
         "@{}".format(SERVICE),
-        "{} ".format(command),
+        "{}".format(command),
     ]
 
     print (event_filters)
 
     for filter in event_filters:
-        message = message.replace(filter, "", 1)
+        print (message)
+        message = message.replace(filter, "", 1).strip()
 
     return message
 
@@ -47,9 +48,9 @@ def send_message(response, chat_id):
 
 
 def unsubscribe_event(message, command, user_id, user_name):
-    print("Command: " + command)
+    event = get_event_from_message(message, command)
 
-    if message == command:
+    if event == "":
         event_text = ""
         for event in events:
             event_text = event_text + "  {} {}\n".format(command, event)
@@ -62,10 +63,6 @@ def unsubscribe_event(message, command, user_id, user_name):
         )
     else:
         print("Message: " + message)
-
-        event = get_event_from_message(message, command)
-
-        print("Event: " + event)
 
         if event in events:
             subscribed = check_subscribed(user_id, event)
@@ -87,9 +84,9 @@ def unsubscribe_event(message, command, user_id, user_name):
 
 
 def subscribe_event(message, command, user_id, user_name):
-    print("Command: " + command)
+    event = get_event_from_message(message, command)
 
-    if message == command:
+    if event == "":
         event_text = ""
         for event in events:
             event_text = event_text + "  {} {}\n".format(command, event)
@@ -102,10 +99,6 @@ def subscribe_event(message, command, user_id, user_name):
         )
     else:
         print("Message: " + message)
-
-        event = get_event_from_message(message, command)
-
-        print("Event: " + event)
 
         if event in events:
             subscribed = check_subscribed(user_id, event)
@@ -155,7 +148,7 @@ def hello(event, context):
             print(data)
             return {"statusCode": 200}
         else:
-            message = str(data["message"]["text"])
+            message = str(data["message"]["text"]).strip()
 
         # Exit when a message is form a bot.
         if data["message"]["from"]["is_bot"]:
