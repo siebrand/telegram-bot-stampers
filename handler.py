@@ -3,14 +3,13 @@ import json
 import os
 import sys
 
-import requests
-
 here = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(here, "./vendored"))
 
+import requests
+
 TOKEN = os.environ['TELEGRAM_TOKEN']
 BASE_URL = "https://api.telegram.org/bot{}".format(TOKEN)
-
 
 def hello(event, context):
     try:
@@ -30,7 +29,7 @@ def hello(event, context):
                 "Hello {}! I support  the following commands:\n"
                 "/omloop for number of days to the start of the season\n"
                 "/subscribe for a number of events you can subscribe to!\n"
-                .format(first_name)
+                    .format(first_name)
             )
 
         if "omloop" in message:
@@ -39,6 +38,7 @@ def hello(event, context):
 
         if "subscribe" in message:
             command = "/subscribe"
+            print("Command: " + argument)
             if message == command:
                 response = (
                     "You can '/subscribe <event>' to the following events:\n"
@@ -47,7 +47,7 @@ def hello(event, context):
                 )
             else:
                 argument = str.replace(message, command + " ", 1)
-                print(argument)
+                print("Argument: " + argument)
 
                 if argument == "omloop":
                     response = (
