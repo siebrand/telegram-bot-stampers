@@ -137,7 +137,7 @@ def check_subscribed(user_id, event):
     return subscribed
 
 
-def hello(event, context):
+def incoming(event, context):
     try:
         data = json.loads(event["body"])
         response = False

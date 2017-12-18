@@ -44,10 +44,10 @@ package:
 
 functions:
   post:
-    handler: handler.hello
+    handler: handler.incoming
     events:
       - http:
-          path: hello
+          path: incoming
           method: post
           cors: true
 
