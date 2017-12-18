@@ -1,15 +1,7 @@
-# Welcome to Serverless!
-#
-# This file is the main config file for your service.
-# It's very minimal at this point and uses default values.
-# You can always add more config options for more control.
-# We've included some commented out config examples here.
-# Just uncomment any of them to get that config option.
+# serverless.xml for telegram-bot-stampers
 #
 # For full config options, check the docs:
 #    docs.serverless.com
-#
-# Happy Coding!
 
 service: StampersTestBot
 
@@ -25,6 +17,7 @@ provider:
   stage: dev
   region: eu-west-1
 
+# @todo Use this instead of the additional custom policy PolicyStampersBot below.
 # you can add statements to the Lambda function's IAM Role here
 #  iamRoleStatements:
 #    - Effect: "Allow"
@@ -56,7 +49,6 @@ package:
 #    - include-me-dir/**
   exclude:
     - .idea/
-#    - exclude-me-dir/**
 
 functions:
   post:
