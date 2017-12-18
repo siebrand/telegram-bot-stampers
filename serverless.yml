@@ -48,12 +48,12 @@ provider:
     TZ: 'Europe/Amsterdam'
 
 # you can add packaging information here
-#package:
+package:
 #  include:
 #    - include-me.py
 #    - include-me-dir/**
-#  exclude:
-#    - exclude-me.py
+  exclude:
+    - .idea/
 #    - exclude-me-dir/**
 
 functions:
