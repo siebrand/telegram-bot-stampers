@@ -160,7 +160,7 @@ def hello(event, context):
         command = "/omloop"
         if command in message:
             print("Command: " + command)
-            omloop = datetime.date(2018, 2, 28)
+            omloop = datetime.date(2018, 2, 24)
             response = "Omloop is in {} days!".format((omloop - datetime.date.today()).days)
 
         command = "/subscribe"
