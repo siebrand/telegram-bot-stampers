@@ -109,6 +109,7 @@ resources:
               Effect: "Allow"
               Action:
                 - dynamodb:DescribeTable
+                - dynamodb:DeleteItem
                 - dynamodb:GetItem
                 - dynamodb:PutItem
                 - dynamodb:UpdateItem
