@@ -21,6 +21,7 @@ var/
 
 # Yay more
 *.bak
+.idea
 
 # Serverless directories
 .serverless
