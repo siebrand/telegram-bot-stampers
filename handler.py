@@ -13,6 +13,9 @@ TOKEN = os.environ['TELEGRAM_TOKEN']
 STAGE = os.environ['PROVIDER_STAGE']
 SERVICE = os.environ['SERVICE']
 BASE_URL = "https://api.telegram.org/bot{}".format(TOKEN)
+events = [
+    "omloop",
+]
 
 # Get the service resource.
 dynamodb = boto3.resource('dynamodb')
@@ -29,10 +32,46 @@ def send_message(response, chat_id):
     requests.post(url, data)
 
 
-def subscribe_event(message, command, user_id):
+def unsubscribe_event(message, command, user_id):
     print("Command: " + command)
 
-    events = ["omloop", "blah"]
+    if message == command:
+        event_text = ""
+        for event in events:
+            event_text = event_text + "  {}\n".format(event)
+
+        response = (
+            "You can '/unsubscribe <event>' to the following events:\n"
+            "{}\n"
+            "Once you are unsubscribed, you will no longer get a daily message about the event."
+            .format(event_text)
+        )
+    else:
+        print("Message: " + message)
+        event = message.replace("{} ".format(command), "", 1)
+        print("Event: " + event)
+
+        if event in events:
+            subscribed = check_subscribed(user_id, event)
+
+            if subscribed:
+                t_subscriptions.delete_item(
+                    Item={
+                        'user': user_id,
+                        'event': event,
+                    }
+                )
+                response = "You are now unsubscribed to '{}'.".format(event)
+            else:
+                response = "You are not subscribed to '{}'!".format(event)
+        else:
+            response = "'{}' is not a valid unsubscription option.".format(event)
+
+    return response
+
+
+def subscribe_event(message, command, user_id):
+    print("Command: " + command)
 
     if message == command:
         event_text = ""
@@ -42,7 +81,7 @@ def subscribe_event(message, command, user_id):
         response = (
             "You can '/subscribe <event>' to the following events:\n"
             "{}\n"
-            "Once you are subscribed, you will get a daily message about this event."
+            "Once you are subscribed, you will get a daily message about the event."
             .format(event_text)
         )
     else:
@@ -113,7 +152,8 @@ def hello(event, context):
             response = (
                 "Hello {}! I support  the following commands:\n"
                 "/omloop for number of days to the start of the season\n"
-                "/subscribe for a number of events you can subscribe to!\n"
+                "/subscribe for a number of events you can subscribe to\n"
+                "/unsubscribe for events you have subscribed to\n"
                 .format(first_name)
             )
 
@@ -126,6 +166,10 @@ def hello(event, context):
         command = "/subscribe"
         if command in message:
             response = subscribe_event(message, command, user_id)
+
+        command = "/unsubscribe"
+        if command in message:
+            response = unsubscribe_event(message, command, user_id)
 
         if response:
             print("Message: {}, Response: {}".format(message, response))
