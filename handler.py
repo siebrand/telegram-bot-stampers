@@ -32,13 +32,15 @@ def hello(event, context):
                     .format(first_name)
             )
 
-        if "omloop" in message:
+        command = "/omloop"
+        if command in message:
+            print("Command: " + command)
             omloop = datetime.date(2018, 2, 28)
             response = "Omloop is in {} days!".format((omloop - datetime.date.today()).days)
 
-        if "subscribe" in message:
-            command = "/subscribe"
-            print("Command: " + argument)
+        command = "/subscribe"
+        if command in message:
+            print("Command: " + command)
             if message == command:
                 response = (
                     "You can '/subscribe <event>' to the following events:\n"
@@ -46,7 +48,8 @@ def hello(event, context):
                     "Once you are subscribed, you will get a daily message about this event."
                 )
             else:
-                argument = str.replace(message, command + " ", 1)
+                print("Message: " + message)
+                argument = message.replace("{} ".format(command), "", 1)
                 print("Argument: " + argument)
 
                 if argument == "omloop":
