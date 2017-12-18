@@ -16,33 +16,25 @@ provider:
 # you can overwrite defaults here
   stage: dev
   region: eu-west-1
-
-# @todo Use this instead of the additional custom policy PolicyStampersBot below.
-# you can add statements to the Lambda function's IAM Role here
-#  iamRoleStatements:
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:ListBucket"
-#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:PutObject"
-#      Resource:
-#        Fn::Join:
-#          - ""
-#          - - "arn:aws:s3:::"
-#            - "Ref" : "ServerlessDeploymentBucket"
-#            - "/*"
-
-# you can define service wide environment variables here
+  # Additional acccess
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:DeleteItem
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+      Resource:
+        - Fn::GetAtt: [ tablesubscriptions, Arn ]
+  # service wide environment variables here
   environment:
-#    variable1: value1
     PROVIDER_STAGE: ${self:provider.stage}
     SERVICE: ${self:service}
     TELEGRAM_TOKEN: ${ssm:/telegram/token/StampersTestBot}
     TZ: 'Europe/Amsterdam'
 
-# you can add packaging information here
+# packaging information here
 package:
 #  include:
 #    - include-me.py
@@ -98,26 +90,6 @@ resources:
     PostLogGroup:
       Properties:
         RetentionInDays: 7
-    PolicyStampersBot:
-      Type: "AWS::IAM::Policy"
-      Properties:
-        PolicyName: StampersBot
-        PolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            -
-              Effect: "Allow"
-              Action:
-                - dynamodb:DescribeTable
-                - dynamodb:DeleteItem
-                - dynamodb:GetItem
-                - dynamodb:PutItem
-                - dynamodb:UpdateItem
-              Resource:
-                - Fn::GetAtt: [ tablesubscriptions, Arn ]
-        Roles:
-          -
-            Ref: IamRoleLambdaExecution
     tablesubscriptions:
       Type: AWS::DynamoDB::Table
       Properties:
