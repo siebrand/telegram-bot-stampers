@@ -10,26 +10,79 @@ import boto3
 import requests
 
 TOKEN = os.environ['TELEGRAM_TOKEN']
+STAGE = os.environ['PROVIDER_STAGE']
+SERVICE = os.environ['SERVICE']
 BASE_URL = "https://api.telegram.org/bot{}".format(TOKEN)
+
+# Get the service resource.
+dynamodb = boto3.resource('dynamodb')
+t_subscriptions = dynamodb.Table("{}-{}-subscriptions".format(SERVICE, STAGE))
+
+
+def sendMessage(response, chat_id):
+    data = {
+        "text": response.encode("utf8"),
+        "chat_id": chat_id
+    }
+
+    url = BASE_URL + "/sendMessage"
+    requests.post(url, data)
+
+
+def subscribeEvent(message, command, user_id):
+    print("Command: " + command)
+
+    events = ["omloop", "blah"]
+
+    if message == command:
+        eventText = ""
+        for event in events:
+            eventText = eventText + "  {}\n".format(event)
+
+        response = ("You can '/subscribe <event>' to the following events:\n"
+            "{}\n"
+            "Once you are subscribed, you will get a daily message about this event."
+                .format(eventText)
+        )
+    else:
+        print("Message: " + message)
+        event = message.replace("{} ".format(command), "", 1)
+        print("Event: " + event)
+
+        if event == "omloop":
+            response = (
+                "You are now subscribed to omloop."
+            )
+        else:
+            response = (
+                "'{}' is not a valid subscription option.".format(event)
+            )
+
+    return response
+
 
 def hello(event, context):
     try:
         data = json.loads(event["body"])
+        response = False
 
-        # print (data)
-
+        # Exit when there is no message text. Join events, and such.
         try:
             data["message"]["text"]
         except:
-            print (data)
+            print(data)
             return {"statusCode": 200}
         else:
             message = str(data["message"]["text"])
 
+        # Exit when a message is form a bot.
+        if data["message"]["from"]["is_bot"] == True:
+            print(data)
+            return {"statusCode": 200}
+
         chat_id = data["message"]["chat"]["id"]
         first_name = data["message"]["from"]["first_name"]
-
-        response = "Use /start to begin, {}".format(first_name)
+        user_id = data["message"]["from"]["id"]
 
         if "start" in message:
             response = (
@@ -47,35 +100,11 @@ def hello(event, context):
 
         command = "/subscribe"
         if command in message:
-            print("Command: " + command)
-            if message == command:
-                response = (
-                    "You can '/subscribe <event>' to the following events:\n"
-                    "  omloop\n\n"
-                    "Once you are subscribed, you will get a daily message about this event."
-                )
-            else:
-                print("Message: " + message)
-                argument = message.replace("{} ".format(command), "", 1)
-                print("Argument: " + argument)
+            response = subscribeEvent(message, command, user_id)
 
-                if argument == "omloop":
-                    response = (
-                        "You are now subscribed to omloop."
-                    )
-                else:
-                    response = (
-                        "'{}' is not a valid subscription option.".format(argument)
-                    )
-
-        print(message, response)
-
-        data = {
-            "text": response.encode("utf8"),
-            "chat_id": chat_id
-        }
-        url = BASE_URL + "/sendMessage"
-        requests.post(url, data)
+        if response:
+            print("Message: {}, Response: {}".format(message, response))
+            sendMessage(response, chat_id)
 
     except Exception as e:
         print(e)

@@ -44,6 +44,8 @@ provider:
 # you can define service wide environment variables here
   environment:
 #    variable1: value1
+    PROVIDER_STAGE: ${self:provider.stage}
+    SERVICE: ${self:service}
     TELEGRAM_TOKEN: ${ssm:/telegram/token/StampersTestBot}
     TZ: 'Europe/Amsterdam'
 
@@ -104,6 +106,106 @@ resources:
     PostLogGroup:
       Properties:
         RetentionInDays: 7
+    PolicyStampersBot:
+      Type: "AWS::IAM::Policy"
+      Properties:
+        PolicyName: StampersBot
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            -
+              Effect: "Allow"
+              Action:
+                - dynamodb:DescribeTable
+              Resource:
+                - Fn::GetAtt: [ tablesubscriptions, Arn ]
+        Roles:
+          -
+            Ref: IamRoleLambdaExecution
+    tablesubscriptions:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-subscriptions
+        AttributeDefinitions:
+        - AttributeName: event
+          AttributeType: S
+        - AttributeName: user
+          AttributeType: S
+        KeySchema:
+        - AttributeName: user
+          KeyType: HASH
+        - AttributeName: event
+          KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: '5'
+          WriteCapacityUnits: '5'
+    topicdynamodb:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: dynamodb
+    snspolicydynamodb:
+      Type: AWS::SNS::TopicPolicy
+      Properties:
+        Topics:
+        - Ref: topicdynamodb
+        PolicyDocument:
+          Version: '2008-10-17'
+          Id: __default_policy_ID
+          Statement:
+          - Sid: __default_statement_ID
+            Effect: Allow
+            Principal:
+              AWS: "*"
+            Action:
+            - SNS:GetTopicAttributes
+            - SNS:SetTopicAttributes
+            - SNS:AddPermission
+            - SNS:RemovePermission
+            - SNS:DeleteTopic
+            - SNS:Subscribe
+            - SNS:ListSubscriptionsByTopic
+            - SNS:Publish
+            - SNS:Receive
+            Resource:
+              Ref: topicdynamodb
+            Condition:
+              StringEquals:
+                AWS:SourceOwner:
+                  Ref: AWS::AccountId
+    alarmsubscriptionsReadCapacityUnitsLimitBasicAlarm:
+      Type: AWS::CloudWatch::Alarm
+      Properties:
+        ActionsEnabled: 'true'
+        ComparisonOperator: GreaterThanOrEqualToThreshold
+        EvaluationPeriods: '5'
+        MetricName: ConsumedReadCapacityUnits
+        Namespace: AWS/DynamoDB
+        Period: '60'
+        Statistic: Sum
+        Threshold: '240.0'
+        AlarmActions:
+         - Ref: topicdynamodb
+        Dimensions:
+        - Name: TableName
+          Value:
+            Ref: tablesubscriptions
+    alarmsubscriptionsWriteCapacityUnitsLimitBasicAlarm:
+      Type: AWS::CloudWatch::Alarm
+      Properties:
+        ActionsEnabled: 'true'
+        ComparisonOperator: GreaterThanOrEqualToThreshold
+        EvaluationPeriods: '5'
+        MetricName: ConsumedWriteCapacityUnits
+        Namespace: AWS/DynamoDB
+        Period: '60'
+        Statistic: Sum
+        Threshold: '240.0'
+        AlarmActions:
+         - Ref: topicdynamodb
+        Dimensions:
+        - Name: TableName
+          Value:
+            Ref: tablesubscriptions
 #  Outputs:
 #     NewOutput:
 #       Description: "Description for the output"
