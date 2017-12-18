@@ -46,19 +46,19 @@ def send_message(response, chat_id):
     requests.post(url, data)
 
 
-def unsubscribe_event(message, command, user_id):
+def unsubscribe_event(message, command, user_id, user_name):
     print("Command: " + command)
 
     if message == command:
         event_text = ""
         for event in events:
-            event_text = event_text + "  {}\n".format(event)
+            event_text = event_text + "  {} {}\n".format(command, event)
 
         response = (
-            "You can '/unsubscribe <event>' to the following events:\n"
+            "You can '{} <event>' to the following events:\n"
             "{}\n"
             "Once you are unsubscribed, you will no longer get a daily message about the event."
-            .format(event_text)
+            .format(command,event_text)
         )
     else:
         print("Message: " + message)
@@ -77,28 +77,28 @@ def unsubscribe_event(message, command, user_id):
                         'event': event,
                     }
                 )
-                response = "You are now unsubscribed to '{}'.".format(event)
+                response = "You are now unsubscribed to '{}', {}.".format(event, user_name)
             else:
-                response = "You are not subscribed to '{}'!".format(event)
+                response = "You are not subscribed to '{}', {}!".format(event, user_name)
         else:
             response = "'{}' is not a valid unsubscription option.".format(event)
 
     return response
 
 
-def subscribe_event(message, command, user_id):
+def subscribe_event(message, command, user_id, user_name):
     print("Command: " + command)
 
     if message == command:
         event_text = ""
         for event in events:
-            event_text = event_text + "  {}\n".format(event)
+            event_text = event_text + "  {} {}\n".format(command, event)
 
         response = (
-            "You can '/subscribe <event>' to the following events:\n"
+            "You can '{} <event>' to the following events:\n"
             "{}\n"
             "Once you are subscribed, you will get a daily message about the event."
-            .format(event_text)
+            .format(command,event_text)
         )
     else:
         print("Message: " + message)
@@ -111,7 +111,7 @@ def subscribe_event(message, command, user_id):
             subscribed = check_subscribed(user_id, event)
 
             if subscribed:
-                response = "You are already subscribed to '{}'!".format(event)
+                response = "You are already subscribed to '{}', {}!".format(event, user_name)
             else:
                 t_subscriptions.put_item(
                     Item={
@@ -120,7 +120,7 @@ def subscribe_event(message, command, user_id):
                         'subscribed': True,
                     }
                 )
-                response = "You are now subscribed to '{}'.".format(event)
+                response = "You are now subscribed to '{}', {}.".format(event,user_name)
         else:
             response = "'{}' is not a valid subscription option.".format(event)
 
@@ -183,11 +183,11 @@ def hello(event, context):
 
         command = "/subscribe"
         if command in message:
-            response = subscribe_event(message, command, user_id)
+            response = subscribe_event(message, command, user_id, first_name)
 
         command = "/unsubscribe"
         if command in message:
-            response = unsubscribe_event(message, command, user_id)
+            response = unsubscribe_event(message, command, user_id, first_name)
 
         if response:
             print("Message: {}, Response: {}".format(message, response))
