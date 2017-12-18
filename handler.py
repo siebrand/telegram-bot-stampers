@@ -17,7 +17,13 @@ def hello(event, context):
 
         # print (data)
 
-        message = str(data["message"]["text"])
+        try:
+            data["message"]["text"]
+        except:
+            print (data)
+            return {"statusCode": 200}
+        else:
+            message = str(data["message"]["text"])
 
         chat_id = data["message"]["chat"]["id"]
         first_name = data["message"]["from"]["first_name"]
