@@ -19,7 +19,7 @@ dynamodb = boto3.resource('dynamodb')
 t_subscriptions = dynamodb.Table("{}-{}-subscriptions".format(SERVICE, STAGE))
 
 
-def sendMessage(response, chat_id):
+def send_message(response, chat_id):
     data = {
         "text": response.encode("utf8"),
         "chat_id": chat_id
@@ -29,36 +29,61 @@ def sendMessage(response, chat_id):
     requests.post(url, data)
 
 
-def subscribeEvent(message, command, user_id):
+def subscribe_event(message, command, user_id):
     print("Command: " + command)
 
     events = ["omloop", "blah"]
 
     if message == command:
-        eventText = ""
+        event_text = ""
         for event in events:
-            eventText = eventText + "  {}\n".format(event)
+            event_text = event_text + "  {}\n".format(event)
 
-        response = ("You can '/subscribe <event>' to the following events:\n"
+        response = (
+            "You can '/subscribe <event>' to the following events:\n"
             "{}\n"
             "Once you are subscribed, you will get a daily message about this event."
-                .format(eventText)
+            .format(event_text)
         )
     else:
         print("Message: " + message)
         event = message.replace("{} ".format(command), "", 1)
         print("Event: " + event)
 
-        if event == "omloop":
-            response = (
-                "You are now subscribed to omloop."
-            )
+        if event in events:
+            subscribed = check_subscribed(user_id, event)
+
+            if subscribed:
+                response = "You are already subscribed to '{}'!".format(event)
+            else:
+                t_subscriptions.put_item(
+                    Item={
+                        'user': user_id,
+                        'event': event,
+                        'subscribed': True,
+                    }
+                )
+                response = "You are now subscribed to '{}'.".format(event)
         else:
-            response = (
-                "'{}' is not a valid subscription option.".format(event)
-            )
+            response = "'{}' is not a valid subscription option.".format(event)
 
     return response
+
+
+def check_subscribed(user_id, event):
+    response = t_subscriptions.get_item(
+        Key={
+            'user': user_id,
+            'event': event,
+        }
+    )
+
+    try:
+        subscribed = response['Item']['subscribed']
+    except:
+        subscribed = False
+
+    return subscribed
 
 
 def hello(event, context):
@@ -76,7 +101,7 @@ def hello(event, context):
             message = str(data["message"]["text"])
 
         # Exit when a message is form a bot.
-        if data["message"]["from"]["is_bot"] == True:
+        if data["message"]["from"]["is_bot"]:
             print(data)
             return {"statusCode": 200}
 
@@ -89,7 +114,7 @@ def hello(event, context):
                 "Hello {}! I support  the following commands:\n"
                 "/omloop for number of days to the start of the season\n"
                 "/subscribe for a number of events you can subscribe to!\n"
-                    .format(first_name)
+                .format(first_name)
             )
 
         command = "/omloop"
@@ -100,11 +125,11 @@ def hello(event, context):
 
         command = "/subscribe"
         if command in message:
-            response = subscribeEvent(message, command, user_id)
+            response = subscribe_event(message, command, user_id)
 
         if response:
             print("Message: {}, Response: {}".format(message, response))
-            sendMessage(response, chat_id)
+            send_message(response, chat_id)
 
     except Exception as e:
         print(e)

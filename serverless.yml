@@ -117,6 +117,9 @@ resources:
               Effect: "Allow"
               Action:
                 - dynamodb:DescribeTable
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
               Resource:
                 - Fn::GetAtt: [ tablesubscriptions, Arn ]
         Roles:
@@ -127,9 +130,9 @@ resources:
       Properties:
         TableName: ${self:service}-${self:provider.stage}-subscriptions
         AttributeDefinitions:
-        - AttributeName: event
-          AttributeType: S
         - AttributeName: user
+          AttributeType: N
+        - AttributeName: event
           AttributeType: S
         KeySchema:
         - AttributeName: user
