@@ -22,16 +22,16 @@ dynamodb = boto3.resource('dynamodb')
 t_subscriptions = dynamodb.Table("{}-{}-subscriptions".format(SERVICE, STAGE))
 
 
-def get_event_from_message(message, command ):
+def get_event_from_message(message, command):
     event_filters = [
         "@{}".format(SERVICE),
         "{}".format(command),
     ]
 
-    #print (event_filters)
+    # print (event_filters)
 
     for filter in event_filters:
-        #print (message)
+        # print (message)
         message = message.replace(filter, "", 1).strip()
 
     return message
@@ -59,7 +59,7 @@ def unsubscribe_event(message, command, user_id, user_name):
             "You can '{} <event>' to the following events:\n"
             "{}\n"
             "Once you are unsubscribed, you will no longer get a daily message about the event."
-            .format(command,event_text)
+            .format(command, event_text)
         )
     else:
         print("Message: " + message)
@@ -96,7 +96,7 @@ def subscribe_event(message, command, user_id, user_name):
             "You can '{} <event>' to the following events:\n"
             "{}\n"
             "Once you are subscribed, you will get a daily message about the event."
-            .format(command,event_text)
+            .format(command, event_text)
         )
     else:
         print("Message: " + message)
@@ -114,7 +114,7 @@ def subscribe_event(message, command, user_id, user_name):
                         'subscribed': True,
                     }
                 )
-                response = "You are now subscribed to '{}', {}.".format(event,user_name)
+                response = "You are now subscribed to '{}', {}.".format(event, user_name)
         else:
             response = "'{}' is not a valid subscription option.".format(event)
 
@@ -142,6 +142,8 @@ def incoming(event, context):
         data = json.loads(event["body"])
         response = False
 
+        print(data)
+
         # Exit when there is no message text. Join events, and such.
         try:
             data["message"]["text"]
@@ -157,6 +159,7 @@ def incoming(event, context):
             return {"statusCode": 200}
 
         chat_id = data["message"]["chat"]["id"]
+        chat_type = data["message"]["chat"]["type"]
         first_name = data["message"]["from"]["first_name"]
         user_id = data["message"]["from"]["id"]
 
@@ -164,8 +167,8 @@ def incoming(event, context):
             response = (
                 "Hello {}! I support  the following commands:\n"
                 "/omloop for number of days until Omloop Het Nieuwsblad\n"
-                "/subscribe for a number of events you can subscribe to\n"
-                "/unsubscribe for events you have subscribed to\n"
+                "/subscribe for a number of events you can subscribe to (only in private chat)\n"
+                "/unsubscribe for events you have subscribed to (only in private chat)\n"
                 .format(first_name)
             )
 
@@ -177,11 +180,17 @@ def incoming(event, context):
 
         command = "/subscribe"
         if command in message:
-            response = subscribe_event(message, command, user_id, first_name)
+            if chat_type == "private":
+                response = subscribe_event(message, command, user_id, first_name)
+            else:
+                response = "This command is only available in a private chat."
 
         command = "/unsubscribe"
         if command in message:
-            response = unsubscribe_event(message, command, user_id, first_name)
+            if chat_type == "private":
+                response = unsubscribe_event(message, command, user_id, first_name)
+            else:
+                response = "This command is only available in a private chat."
 
         if response:
             print("Message: {}, Response: {}".format(message, response))
