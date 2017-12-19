@@ -28,10 +28,10 @@ def get_event_from_message(message, command ):
         "{}".format(command),
     ]
 
-    print (event_filters)
+    #print (event_filters)
 
     for filter in event_filters:
-        print (message)
+        #print (message)
         message = message.replace(filter, "", 1).strip()
 
     return message
