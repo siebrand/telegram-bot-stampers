@@ -35,7 +35,8 @@ def get_chat_ids(event):
             'users': {
                 'Keys': [
                     {
-                        'event': event
+                        'dummy': 1,
+                        'event': event,
                     },
                 ],
                 #'ConsistentRead': True
