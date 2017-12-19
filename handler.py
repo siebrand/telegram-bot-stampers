@@ -84,7 +84,7 @@ def unsubscribe_event(message, command, user_id, user_name):
     return response
 
 
-def subscribe_event(message, command, user_id, user_name):
+def subscribe_event(message, command, user_id, user_name, chat_id):
     event = get_event_from_message(message, command)
 
     if event == "":
@@ -111,6 +111,7 @@ def subscribe_event(message, command, user_id, user_name):
                     Item={
                         'user': user_id,
                         'event': event,
+                        "chat_id": chat_id,
                         'subscribed': True,
                     }
                 )
@@ -181,7 +182,7 @@ def incoming(event, context):
         command = "/subscribe"
         if command in message:
             if chat_type == "private":
-                response = subscribe_event(message, command, user_id, first_name)
+                response = subscribe_event(message, command, user_id, first_name, chat_id)
             else:
                 response = "This command is only available in a private chat."
 
