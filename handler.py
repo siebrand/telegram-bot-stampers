@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import re
 import sys
 
 here = os.path.dirname(os.path.realpath(__file__))
@@ -175,19 +176,22 @@ def incoming(event, context):
             )
 
         command = "/omloop"
-        if command in message:
+        pattern = re.compile("^{}".format(command))
+        if pattern.match(message):
             print("Command: " + command)
             response = omloop()
 
         command = "/subscribe"
-        if command in message:
+        pattern = re.compile("^{}".format(command))
+        if pattern.match(message):
             if chat_type == "private":
                 response = subscribe_event(message, command, user_id, first_name, chat_id)
             else:
                 response = "This command is only available in a private chat."
 
         command = "/unsubscribe"
-        if command in message:
+        pattern = re.compile("^{}".format(command))
+        if pattern.match(message):
             if chat_type == "private":
                 response = unsubscribe_event(message, command, user_id, first_name)
             else:
