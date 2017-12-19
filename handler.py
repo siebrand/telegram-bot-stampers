@@ -8,6 +8,7 @@ sys.path.append(os.path.join(here, "./vendored"))
 
 import boto3
 import requests
+from omloop import omloop
 
 TOKEN = os.environ['TELEGRAM_TOKEN']
 STAGE = os.environ['PROVIDER_STAGE']
@@ -176,8 +177,7 @@ def incoming(event, context):
         command = "/omloop"
         if command in message:
             print("Command: " + command)
-            omloop = datetime.date(2018, 2, 24)
-            response = "Omloop Het Nieuwsblad is in {} days!".format((omloop - datetime.date.today()).days)
+            response = omloop()
 
         command = "/subscribe"
         if command in message:
