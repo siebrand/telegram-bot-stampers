@@ -33,7 +33,10 @@ provider:
     SERVICE: ${self:service}
     TELEGRAM_TOKEN: ${ssm:/telegram/token/StampersTestBot}
     TZ: 'Europe/Amsterdam'
-
+    TABLE_SUBSCRIPTIONS: ${self:custom.table.subscriptions}
+custom:
+  table:
+    subscriptions: subscriptions
 # packaging information here
 package:
 #  include:
@@ -50,7 +53,10 @@ functions:
           path: incoming
           method: post
           cors: true
-
+  sendddaily:
+    handler: daily.main
+    events:
+      - schedule: cron(0 6 * * ? *)
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
@@ -90,17 +96,20 @@ resources:
     PostLogGroup:
       Properties:
         RetentionInDays: 7
+    SenddailyLogGroup:
+      Properties:
+        RetentionInDays: 7
     tablesubscriptions:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${self:service}-${self:provider.stage}-subscriptions
+        TableName: ${self:service}-${self:provider.stage}-${self:custom.table.subscriptions}
         AttributeDefinitions:
-        - AttributeName: user
+        - AttributeName: dummy
           AttributeType: N
         - AttributeName: event
           AttributeType: S
         KeySchema:
-        - AttributeName: user
+        - AttributeName: dummy
           KeyType: HASH
         - AttributeName: event
           KeyType: RANGE

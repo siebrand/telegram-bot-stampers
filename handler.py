@@ -1,4 +1,3 @@
-import datetime
 import json
 import os
 import re
@@ -61,7 +60,7 @@ def unsubscribe_event(message, command, user_id, user_name):
             "You can '{} <event>' to the following events:\n"
             "{}\n"
             "Once you are unsubscribed, you will no longer get a daily message about the event."
-            .format(command, event_text)
+                .format(command, event_text)
         )
     else:
         print("Message: " + message)
@@ -69,11 +68,16 @@ def unsubscribe_event(message, command, user_id, user_name):
         if event in events:
             subscribed = check_subscribed(user_id, event)
 
-            if subscribed:
+            if subscribed["subscribed"]:
+                subscriptions = subscribed["subscriptions"]
+                del subscriptions[user_id]
+                print(subscriptions)
+
                 t_subscriptions.delete_item(
                     Key={
-                        'user': user_id,
-                        'event': event,
+                        "dummy": 1,
+                        "event": event,
+                        "subscriptions": subscriptions,
                     }
                 )
 
@@ -83,7 +87,10 @@ def unsubscribe_event(message, command, user_id, user_name):
         else:
             response = "'{}' is not a valid unsubscription option.".format(event)
 
-    return response
+    return {
+        "response": response,
+        "subscribed": subscribed,
+    }
 
 
 def subscribe_event(message, command, user_id, user_name, chat_id):
@@ -98,7 +105,7 @@ def subscribe_event(message, command, user_id, user_name, chat_id):
             "You can '{} <event>' to the following events:\n"
             "{}\n"
             "Once you are subscribed, you will get a daily message about the event."
-            .format(command, event_text)
+                .format(command, event_text)
         )
     else:
         print("Message: " + message)
@@ -106,15 +113,16 @@ def subscribe_event(message, command, user_id, user_name, chat_id):
         if event in events:
             subscribed = check_subscribed(user_id, event)
 
-            if subscribed:
+            if subscribed["subscribed"]:
                 response = "You are already subscribed to '{}', {}!".format(event, user_name)
             else:
-                t_subscriptions.put_item(
+                subscriptions = subscribed["subscriptions"]
+                subscriptions[user_id] = chat_id
+                t_subscriptions.update_item(
                     Item={
-                        'user': user_id,
-                        'event': event,
-                        "chat_id": chat_id,
-                        'subscribed': True,
+                        "dummy": 1,
+                        "event": event,
+                        "subscriptions": subscriptions,
                     }
                 )
                 response = "You are now subscribed to '{}', {}.".format(event, user_name)
@@ -127,17 +135,20 @@ def subscribe_event(message, command, user_id, user_name, chat_id):
 def check_subscribed(user_id, event):
     response = t_subscriptions.get_item(
         Key={
-            'user': user_id,
             'event': event,
         }
     )
 
     try:
-        subscribed = response['Item']['subscribed']
+        subscribed = user_id in response['Item']['subscribed'].keys()
+        print(response['Item'])
     except:
         subscribed = False
 
-    return subscribed
+    return {
+        "subscribed": subscribed,
+        "subscriptions": response['Item']['subscribed'],
+    }
 
 
 def incoming(event, context):
